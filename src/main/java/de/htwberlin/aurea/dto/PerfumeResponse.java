@@ -7,7 +7,6 @@ import de.htwberlin.aurea.entity.ScentFamily;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDate;
 
 public record PerfumeResponse(
 		Long id,
@@ -22,16 +21,12 @@ public record PerfumeResponse(
 		BigDecimal priceEur,
 		Integer rating,
 		PerfumeStatus status,
-		boolean favorite,
-		int wearCount,
-		LocalDate lastWornOn,
 		Instant createdAt
 ) {
 
 	public static PerfumeResponse from(Perfume p) {
 		return new PerfumeResponse(p.getId(), p.getName(), p.getBrand(), p.getConcentration(),
 				p.getFamily(), p.getTopNotes(), p.getHeartNotes(), p.getBaseNotes(), p.getSizeMl(),
-				p.getPriceEur(), p.getRating(), p.getStatus(), p.isFavorite(), p.getWearCount(),
-				p.getLastWornOn(), p.getCreatedAt());
+				p.getPriceEur(), p.getRating(), p.getStatus(), p.getCreatedAt());
 	}
 }

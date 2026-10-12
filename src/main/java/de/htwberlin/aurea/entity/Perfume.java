@@ -14,7 +14,6 @@ import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDate;
 
 /** Ein Parfüm in der Sammlung oder auf der Wunschliste eines Nutzers. */
 @Entity
@@ -65,14 +64,6 @@ public class Perfume {
 	private PerfumeStatus status = PerfumeStatus.OWNED;
 
 	@Column(nullable = false)
-	private boolean favorite;
-
-	@Column(nullable = false)
-	private int wearCount;
-
-	private LocalDate lastWornOn;
-
-	@Column(nullable = false)
 	private Instant createdAt = Instant.now();
 
 	protected Perfume() {
@@ -80,14 +71,6 @@ public class Perfume {
 
 	public Perfume(AppUser owner) {
 		this.owner = owner;
-	}
-
-	/** Protokolliert, dass das Parfüm am angegebenen Tag getragen wurde. */
-	public void wear(LocalDate day) {
-		wearCount++;
-		if (lastWornOn == null || day.isAfter(lastWornOn)) {
-			lastWornOn = day;
-		}
 	}
 
 	public Long getId() { return id; }
@@ -126,10 +109,5 @@ public class Perfume {
 	public PerfumeStatus getStatus() { return status; }
 	public void setStatus(PerfumeStatus status) { this.status = status; }
 
-	public boolean isFavorite() { return favorite; }
-	public void setFavorite(boolean favorite) { this.favorite = favorite; }
-
-	public int getWearCount() { return wearCount; }
-	public LocalDate getLastWornOn() { return lastWornOn; }
 	public Instant getCreatedAt() { return createdAt; }
 }

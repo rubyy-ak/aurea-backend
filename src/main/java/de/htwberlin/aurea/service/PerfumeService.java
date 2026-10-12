@@ -12,8 +12,6 @@ import de.htwberlin.aurea.repository.PerfumeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Clock;
-import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -24,16 +22,14 @@ public class PerfumeService {
 
 	private final PerfumeRepository perfumes;
 	private final AppUserRepository users;
-	private final Clock clock;
 
-	public PerfumeService(PerfumeRepository perfumes, AppUserRepository users, Clock clock) {
+	public PerfumeService(PerfumeRepository perfumes, AppUserRepository users) {
 		this.perfumes = perfumes;
 		this.users = users;
-		this.clock = clock;
 	}
 
 	/** Filterkriterien der Listenansicht; alle optional. */
-	public record Filter(PerfumeStatus status, ScentFamily family, String query, Boolean favorite, String sort) {
+	public record Filter(PerfumeStatus status, ScentFamily family, String query, String sort) {
 	}
 
 	@Transactional(readOnly = true)
@@ -44,9 +40,6 @@ public class PerfumeService {
 		}
 		if (filter.family() != null) {
 			stream = stream.filter(p -> p.getFamily() == filter.family());
-		}
-		if (Boolean.TRUE.equals(filter.favorite())) {
-			stream = stream.filter(Perfume::isFavorite);
 		}
 		if (filter.query() != null && !filter.query().isBlank()) {
 			String q = filter.query().trim().toLowerCase(Locale.ROOT);
@@ -79,23 +72,6 @@ public class PerfumeService {
 		perfumes.delete(find(userId, id));
 	}
 
-	@Transactional
-	public PerfumeResponse toggleFavorite(Long userId, Long id) {
-		Perfume perfume = find(userId, id);
-		perfume.setFavorite(!perfume.isFavorite());
-		return PerfumeResponse.from(perfume);
-	}
-
-	@Transactional
-	public PerfumeResponse wear(Long userId, Long id) {
-		Perfume perfume = find(userId, id);
-		if (perfume.getStatus() != PerfumeStatus.OWNED) {
-			throw new ConflictException("Nur Parfüms aus der Sammlung können getragen werden.");
-		}
-		perfume.wear(LocalDate.now(clock));
-		return PerfumeResponse.from(perfume);
-	}
-
 	/** Verschiebt ein Parfüm von der Wunschliste in die Sammlung. */
 	@Transactional
 	public PerfumeResponse purchase(Long userId, Long id) {
@@ -125,9 +101,6 @@ public class PerfumeService {
 		perfume.setPriceEur(r.priceEur());
 		perfume.setRating(r.rating());
 		perfume.setStatus(r.status() != null ? r.status() : PerfumeStatus.OWNED);
-		if (r.favorite() != null) {
-			perfume.setFavorite(r.favorite());
-		}
 	}
 
 	private static String blankToNull(String s) {
@@ -148,7 +121,6 @@ public class PerfumeService {
 					.thenComparing(p -> p.getName().toLowerCase(Locale.ROOT));
 			case "rating" -> Comparator.comparing(Perfume::getRating,
 					Comparator.nullsLast(Comparator.reverseOrder()));
-			case "worn" -> Comparator.comparingInt(Perfume::getWearCount).reversed();
 			case "price" -> Comparator.comparing(Perfume::getPriceEur,
 					Comparator.nullsLast(Comparator.reverseOrder()));
 			default -> (a, b) -> 0;

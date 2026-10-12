@@ -41,9 +41,8 @@ public class PerfumeController {
 			@RequestParam(required = false) PerfumeStatus status,
 			@RequestParam(required = false) ScentFamily family,
 			@RequestParam(required = false) String q,
-			@RequestParam(required = false) Boolean favorite,
 			@RequestParam(required = false) String sort) {
-		return perfumeService.list(user.id(), new PerfumeService.Filter(status, family, q, favorite, sort));
+		return perfumeService.list(user.id(), new PerfumeService.Filter(status, family, q, sort));
 	}
 
 	@GetMapping("/suggestion")
@@ -73,16 +72,6 @@ public class PerfumeController {
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void delete(@AuthenticationPrincipal AuthUser user, @PathVariable Long id) {
 		perfumeService.delete(user.id(), id);
-	}
-
-	@PostMapping("/{id}/favorite")
-	public PerfumeResponse toggleFavorite(@AuthenticationPrincipal AuthUser user, @PathVariable Long id) {
-		return perfumeService.toggleFavorite(user.id(), id);
-	}
-
-	@PostMapping("/{id}/wear")
-	public PerfumeResponse wear(@AuthenticationPrincipal AuthUser user, @PathVariable Long id) {
-		return perfumeService.wear(user.id(), id);
 	}
 
 	@PostMapping("/{id}/purchase")

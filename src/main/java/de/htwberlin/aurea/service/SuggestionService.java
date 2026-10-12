@@ -36,36 +36,39 @@ public class SuggestionService {
 
 	@Transactional(readOnly = true)
 	public SuggestionResponse suggest(Long userId) {
+		LocalDate today = LocalDate.now(clock);
 		Optional<CurrentWeather> weather = weatherClient.currentWeather();
 		boolean warm = weather.map(w -> w.temperatureC() >= WARM_THRESHOLD_C)
-				.orElseGet(this::isWarmSeason);
+				.orElseGet(() -> isWarmSeason(today));
 
-		List<Perfume> owned = perfumes.findByOwnerIdAndStatus(userId, PerfumeStatus.OWNED);
 		Double temperature = weather.map(CurrentWeather::temperatureC).orElse(null);
 		String description = weather.map(CurrentWeather::description).orElse(null);
 
+		List<Perfume> owned = perfumes.findByOwnerIdAndStatus(userId, PerfumeStatus.OWNED);
 		if (owned.isEmpty()) {
 			return new SuggestionResponse(null, temperature, description,
 					"Füge zuerst ein Parfüm zu deiner Sammlung hinzu.");
 		}
 
-		// Passende Familie zuerst, dann am längsten nicht getragen, dann Favoriten.
-		Perfume pick = owned.stream()
-				.min(Comparator.comparing((Perfume p) -> p.getFamily().isLight() != warm)
-						.thenComparing(Perfume::getLastWornOn, Comparator.nullsFirst(Comparator.naturalOrder()))
-						.thenComparing(p -> !p.isFavorite()))
-				.orElseThrow();
+		// Nur Düfte, die zum Wetter passen – gibt es keine, kommen alle in Frage.
+		List<Perfume> matching = owned.stream().filter(p -> p.getFamily().isLight() == warm).toList();
+		boolean fits = !matching.isEmpty();
+		List<Perfume> candidates = (fits ? matching : owned).stream()
+				.sorted(Comparator.comparing(Perfume::getCreatedAt).thenComparing(Perfume::getName))
+				.toList();
 
-		boolean fits = pick.getFamily().isLight() == warm;
+		// Jeden Tag ein anderer Kandidat, am selben Tag aber immer derselbe.
+		Perfume pick = candidates.get(today.getDayOfYear() % candidates.size());
+
 		String mood = warm ? "warm – Zeit für etwas Leichtes und Frisches" : "kühl – perfekt für einen warmen, tiefen Duft";
 		String reason = fits
 				? "Es ist " + mood + "."
-				: "Es ist " + mood + ", aber dieser Duft war am längsten nicht mehr dran.";
+				: "Es ist " + mood + ". In deiner Sammlung passt gerade nichts perfekt – wie wäre es hiermit?";
 		return new SuggestionResponse(PerfumeResponse.from(pick), temperature, description, reason);
 	}
 
-	private boolean isWarmSeason() {
-		Month month = LocalDate.now(clock).getMonth();
+	private static boolean isWarmSeason(LocalDate day) {
+		Month month = day.getMonth();
 		return month.getValue() >= Month.MAY.getValue() && month.getValue() <= Month.SEPTEMBER.getValue();
 	}
 }

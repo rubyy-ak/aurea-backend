@@ -51,7 +51,7 @@ class PerfumeControllerTest {
 				.andExpect(jsonPath("$.name").value("Rose Noire"))
 				.andExpect(jsonPath("$.family").value("FLORAL"))
 				.andExpect(jsonPath("$.priceEur").value(120.5))
-				.andExpect(jsonPath("$.wearCount").value(0));
+				.andExpect(jsonPath("$.status").value("OWNED"));
 	}
 
 	@Test
@@ -114,41 +114,17 @@ class PerfumeControllerTest {
 	}
 
 	@Test
-	void favoriteWearAndPurchase() throws Exception {
-		long owned = createPerfume(mvc, auth, "Signature", "WOODY", "OWNED");
+	void purchaseMovesWishlistPerfumeToCollection() throws Exception {
 		long wish = createPerfume(mvc, auth, "Traum", "GOURMAND", "WISHLIST");
 
-		mvc.perform(post("/api/perfumes/" + owned + "/favorite").header("Authorization", auth))
-				.andExpect(jsonPath("$.favorite").value(true));
-		mvc.perform(post("/api/perfumes/" + owned + "/wear").header("Authorization", auth))
-				.andExpect(jsonPath("$.wearCount").value(1))
-				.andExpect(jsonPath("$.lastWornOn").isNotEmpty());
-
-		// Wunschlisten-Parfüms kann man noch nicht tragen …
-		mvc.perform(post("/api/perfumes/" + wish + "/wear").header("Authorization", auth))
-				.andExpect(status().isConflict());
-		// … aber kaufen.
 		mvc.perform(post("/api/perfumes/" + wish + "/purchase").header("Authorization", auth))
-				.andExpect(jsonPath("$.status").value("OWNED"));
-		mvc.perform(post("/api/perfumes/" + wish + "/purchase").header("Authorization", auth))
-				.andExpect(status().isConflict());
-	}
-
-	@Test
-	void statsSummarizeCollection() throws Exception {
-		long a = createPerfume(mvc, auth, "A", "CITRUS", "OWNED");
-		createPerfume(mvc, auth, "B", "CITRUS", "OWNED");
-		createPerfume(mvc, auth, "C", "WOODY", "WISHLIST");
-		mvc.perform(post("/api/perfumes/" + a + "/wear").header("Authorization", auth));
-
-		mvc.perform(get("/api/stats").header("Authorization", auth))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.ownedCount").value(2))
-				.andExpect(jsonPath("$.wishlistCount").value(1))
-				.andExpect(jsonPath("$.collectionValueEur").value(241.0))
-				.andExpect(jsonPath("$.totalMl").value(100))
-				.andExpect(jsonPath("$.familyCounts.CITRUS").value(2))
-				.andExpect(jsonPath("$.mostWorn.name").value("A"));
+				.andExpect(jsonPath("$.status").value("OWNED"));
+		mvc.perform(get("/api/perfumes").param("status", "WISHLIST").header("Authorization", auth))
+				.andExpect(jsonPath("$", hasSize(0)));
+		// Schon in der Sammlung -> nicht noch einmal kaufbar.
+		mvc.perform(post("/api/perfumes/" + wish + "/purchase").header("Authorization", auth))
+				.andExpect(status().isConflict());
 	}
 
 	@Test
