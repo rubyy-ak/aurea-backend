@@ -7,6 +7,9 @@ Tech-Stack: **Spring Boot 4 (Java 25)** · **Vue 3 + Vite** · **PostgreSQL** ·
 **Team:** Ruby Aktar, _Partner/in eintragen_
 **Frontend-Repository:** https://github.com/rubyy-ak/aurea-frontend
 
+**Live-App:** https://aurea-frontend-yytz.onrender.com
+**Backend-API:** https://aurea-backend-5vbu.onrender.com/api/examples
+
 ## Use-Cases
 
 | # | Use-Case | Wo in der App |
@@ -71,7 +74,7 @@ Voraussetzung: Java 25. Lokal wird eine H2-Datei-Datenbank in `data/` verwendet,
 ## Deployment auf Render
 
 1. Auf Render **New → Blueprint** wählen und dieses Repository auswählen. Render liest `render.yaml` und legt die PostgreSQL-Datenbank und das Backend an.
-2. Bei `CORS_ALLOWED_ORIGINS` die URL des Frontends eintragen, z. B. `https://aurea-frontend.onrender.com`.
+2. Bei `CORS_ALLOWED_ORIGINS` die URL des Frontends eintragen, hier `https://aurea-frontend-yytz.onrender.com`.
 3. Die Datenbank-Zugangsdaten setzt Render automatisch als Umgebungsvariablen. Im Repository stehen keine Credentials.
 
 GitHub Actions führt bei jedem Push die Tests aus. Render deployt erst, wenn sie grün sind.
