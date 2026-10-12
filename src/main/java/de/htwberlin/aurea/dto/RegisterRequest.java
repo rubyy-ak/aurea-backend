@@ -6,8 +6,8 @@ import jakarta.validation.constraints.Size;
 
 public record RegisterRequest(
 		@NotBlank(message = "Bitte einen Benutzernamen angeben.")
-		@Pattern(regexp = "^[A-Za-z0-9_.-]{3,30}$",
-				message = "3–30 Zeichen: Buchstaben, Zahlen, Punkt, Binde- oder Unterstrich.")
+		@Pattern(regexp = "^[A-Za-z0-9_.@+-]{3,40}$",
+				message = "3–40 Zeichen ohne Leerzeichen – z. B. ein Name oder deine E-Mail-Adresse.")
 		String username,
 
 		@NotBlank(message = "Bitte ein Passwort angeben.")

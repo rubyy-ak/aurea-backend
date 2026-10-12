@@ -39,6 +39,18 @@ class AuthControllerTest {
 	}
 
 	@Test
+	void emailAddressCanBeUsedAsUsername() throws Exception {
+		mvc.perform(post("/api/auth/register")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"username\":\"camille.dupont@example.com\",\"password\":\"geheim123\"}"))
+				.andExpect(status().isCreated());
+		mvc.perform(post("/api/auth/login")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"username\":\"Camille.Dupont@example.com\",\"password\":\"geheim123\"}"))
+				.andExpect(status().isOk());
+	}
+
+	@Test
 	void duplicateUsernameIsRejected() throws Exception {
 		String body = "{\"username\":\"doppelt\",\"password\":\"geheim123\"}";
 		mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(body))

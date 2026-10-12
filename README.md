@@ -68,7 +68,7 @@ Voraussetzung: Java 25. Lokal wird eine H2-Datei-Datenbank in `data/` verwendet,
 
 ```bash
 ./gradlew bootRun     # http://localhost:8080
-./gradlew test        # 23 Tests
+./gradlew test        # 24 Tests
 ```
 
 ## Deployment auf Render
