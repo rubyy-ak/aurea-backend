@@ -1,0 +1,9 @@
+.gradle
+build/
+data/
+!gradle/wrapper/gradle-wrapper.jar
+.idea
+*.iml
+out/
+.vscode/
+HELP.md
