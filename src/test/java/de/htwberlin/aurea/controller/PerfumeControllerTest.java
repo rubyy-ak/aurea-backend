@@ -166,5 +166,17 @@ class PerfumeControllerTest {
 		when(weatherClient.currentWeather()).thenReturn(Optional.of(new CurrentWeather(27.0, 0)));
 		mvc.perform(get("/api/perfumes/suggestion").header("Authorization", auth))
 				.andExpect(jsonPath("$.perfume.name").value("Sommerbrise"));
+
+		// Wetter vom Browser hat Vorrang vor dem Backend-Abruf …
+		mvc.perform(get("/api/perfumes/suggestion").header("Authorization", auth)
+						.param("temperature", "2.5").param("weatherCode", "71"))
+				.andExpect(jsonPath("$.perfume.name").value("Winterfeuer"))
+				.andExpect(jsonPath("$.temperatureC").value(2.5))
+				.andExpect(jsonPath("$.weather").value("verschneit"));
+
+		// … aber unrealistische Werte werden ignoriert.
+		mvc.perform(get("/api/perfumes/suggestion").header("Authorization", auth)
+						.param("temperature", "500").param("weatherCode", "0"))
+				.andExpect(jsonPath("$.temperatureC").value(27.0));
 	}
 }

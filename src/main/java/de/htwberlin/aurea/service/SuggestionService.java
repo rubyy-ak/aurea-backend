@@ -36,8 +36,17 @@ public class SuggestionService {
 
 	@Transactional(readOnly = true)
 	public SuggestionResponse suggest(Long userId) {
+		return suggest(userId, Optional.empty());
+	}
+
+	/**
+	 * @param browserWeather Wetter, das der Browser bereits bei Open-Meteo abgefragt hat. Fehlt es,
+	 *                       fragt das Backend selbst nach.
+	 */
+	@Transactional(readOnly = true)
+	public SuggestionResponse suggest(Long userId, Optional<CurrentWeather> browserWeather) {
 		LocalDate today = LocalDate.now(clock);
-		Optional<CurrentWeather> weather = weatherClient.currentWeather();
+		Optional<CurrentWeather> weather = browserWeather.isPresent() ? browserWeather : weatherClient.currentWeather();
 		boolean warm = weather.map(w -> w.temperatureC() >= WARM_THRESHOLD_C)
 				.orElseGet(() -> isWarmSeason(today));
 

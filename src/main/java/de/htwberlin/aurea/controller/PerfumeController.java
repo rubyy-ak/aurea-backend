@@ -8,6 +8,7 @@ import de.htwberlin.aurea.entity.ScentFamily;
 import de.htwberlin.aurea.security.AuthUser;
 import de.htwberlin.aurea.service.PerfumeService;
 import de.htwberlin.aurea.service.SuggestionService;
+import de.htwberlin.aurea.weather.CurrentWeather;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -47,8 +48,10 @@ public class PerfumeController {
 	}
 
 	@GetMapping("/suggestion")
-	public SuggestionResponse suggestion(@AuthenticationPrincipal AuthUser user) {
-		return suggestionService.suggest(user.id());
+	public SuggestionResponse suggestion(@AuthenticationPrincipal AuthUser user,
+			@RequestParam(required = false) Double temperature,
+			@RequestParam(required = false) Integer weatherCode) {
+		return suggestionService.suggest(user.id(), CurrentWeather.ofPlausible(temperature, weatherCode));
 	}
 
 	@GetMapping("/{id}")

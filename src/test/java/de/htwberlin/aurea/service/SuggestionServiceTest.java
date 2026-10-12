@@ -86,6 +86,20 @@ class SuggestionServiceTest {
 	}
 
 	@Test
+	void usesWeatherFromBrowserWithoutAskingBackendClient() {
+		when(repo.findByOwnerIdAndStatus(1L, PerfumeStatus.OWNED)).thenReturn(List.of(
+				perfume("Zitrone", ScentFamily.CITRUS),
+				perfume("Holz", ScentFamily.WOODY)));
+
+		SuggestionResponse result = serviceOn("2026-10-12T10:00:00Z")
+				.suggest(1L, Optional.of(new CurrentWeather(26, 0)));
+
+		assertThat(result.perfume().name()).isEqualTo("Zitrone");
+		assertThat(result.temperatureC()).isEqualTo(26.0);
+		org.mockito.Mockito.verifyNoInteractions(weather);
+	}
+
+	@Test
 	void fallsBackToSeasonWhenWeatherUnavailable() {
 		when(weather.currentWeather()).thenReturn(Optional.empty());
 		when(repo.findByOwnerIdAndStatus(1L, PerfumeStatus.OWNED)).thenReturn(List.of(
