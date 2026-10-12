@@ -26,11 +26,15 @@ final class ApiTestSupport {
 	}
 
 	static String perfumeJson(String name, String family, String status) {
+		return perfumeJson(name, family, status, false);
+	}
+
+	static String perfumeJson(String name, String family, String status, boolean favorite) {
 		return """
 				{"name":"%s","brand":"Maison Test","concentration":"EAU_DE_PARFUM","family":"%s",
 				 "topNotes":"Bergamotte","heartNotes":"Rose","baseNotes":"Vanille",
-				 "sizeMl":50,"priceEur":120.50,"rating":4,"status":"%s"}
-				""".formatted(name, family, status);
+				 "sizeMl":50,"priceEur":120.50,"rating":4,"status":"%s","favorite":%s}
+				""".formatted(name, family, status, favorite);
 	}
 
 	static long createPerfume(MockMvc mvc, String auth, String name, String family, String status) throws Exception {

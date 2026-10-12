@@ -21,12 +21,13 @@ public record PerfumeResponse(
 		BigDecimal priceEur,
 		Integer rating,
 		PerfumeStatus status,
+		boolean favorite,
 		Instant createdAt
 ) {
 
 	public static PerfumeResponse from(Perfume p) {
 		return new PerfumeResponse(p.getId(), p.getName(), p.getBrand(), p.getConcentration(),
 				p.getFamily(), p.getTopNotes(), p.getHeartNotes(), p.getBaseNotes(), p.getSizeMl(),
-				p.getPriceEur(), p.getRating(), p.getStatus(), p.getCreatedAt());
+				p.getPriceEur(), p.getRating(), p.getStatus(), p.isFavorite(), p.getCreatedAt());
 	}
 }

@@ -69,6 +69,23 @@ class SuggestionServiceTest {
 	}
 
 	@Test
+	void prefersFavoritesAmongMatchingPerfumes() {
+		when(weather.currentWeather()).thenReturn(Optional.of(new CurrentWeather(25, 0)));
+		Perfume favorite = perfume("Liebling", ScentFamily.FRESH);
+		favorite.setFavorite(true);
+		Perfume heavyFavorite = perfume("Schwerer Liebling", ScentFamily.ORIENTAL);
+		heavyFavorite.setFavorite(true);
+		when(repo.findByOwnerIdAndStatus(1L, PerfumeStatus.OWNED)).thenReturn(List.of(
+				perfume("A", ScentFamily.CITRUS), favorite, perfume("B", ScentFamily.AQUATIC), heavyFavorite));
+
+		// An jedem Tag: passender Favorit statt unpassender Favorit oder Nicht-Favorit.
+		for (String day : List.of("2026-07-13", "2026-07-14", "2026-07-15")) {
+			SuggestionResponse result = serviceOn(day + "T10:00:00Z").suggest(1L);
+			assertThat(result.perfume().name()).isEqualTo("Liebling");
+		}
+	}
+
+	@Test
 	void fallsBackToSeasonWhenWeatherUnavailable() {
 		when(weather.currentWeather()).thenReturn(Optional.empty());
 		when(repo.findByOwnerIdAndStatus(1L, PerfumeStatus.OWNED)).thenReturn(List.of(

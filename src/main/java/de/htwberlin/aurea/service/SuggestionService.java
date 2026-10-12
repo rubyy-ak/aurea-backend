@@ -53,7 +53,10 @@ public class SuggestionService {
 		// Nur Düfte, die zum Wetter passen – gibt es keine, kommen alle in Frage.
 		List<Perfume> matching = owned.stream().filter(p -> p.getFamily().isLight() == warm).toList();
 		boolean fits = !matching.isEmpty();
-		List<Perfume> candidates = (fits ? matching : owned).stream()
+		List<Perfume> pool = fits ? matching : owned;
+		// Favoriten haben Vorrang, sofern welche dabei sind.
+		List<Perfume> favorites = pool.stream().filter(Perfume::isFavorite).toList();
+		List<Perfume> candidates = (favorites.isEmpty() ? pool : favorites).stream()
 				.sorted(Comparator.comparing(Perfume::getCreatedAt).thenComparing(Perfume::getName))
 				.toList();
 

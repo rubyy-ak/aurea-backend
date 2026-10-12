@@ -29,7 +29,7 @@ public class PerfumeService {
 	}
 
 	/** Filterkriterien der Listenansicht; alle optional. */
-	public record Filter(PerfumeStatus status, ScentFamily family, String query, String sort) {
+	public record Filter(PerfumeStatus status, ScentFamily family, String query, Boolean favorite, String sort) {
 	}
 
 	@Transactional(readOnly = true)
@@ -40,6 +40,9 @@ public class PerfumeService {
 		}
 		if (filter.family() != null) {
 			stream = stream.filter(p -> p.getFamily() == filter.family());
+		}
+		if (Boolean.TRUE.equals(filter.favorite())) {
+			stream = stream.filter(Perfume::isFavorite);
 		}
 		if (filter.query() != null && !filter.query().isBlank()) {
 			String q = filter.query().trim().toLowerCase(Locale.ROOT);
@@ -101,6 +104,7 @@ public class PerfumeService {
 		perfume.setPriceEur(r.priceEur());
 		perfume.setRating(r.rating());
 		perfume.setStatus(r.status() != null ? r.status() : PerfumeStatus.OWNED);
+		perfume.setFavorite(Boolean.TRUE.equals(r.favorite()));
 	}
 
 	private static String blankToNull(String s) {

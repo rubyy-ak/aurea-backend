@@ -46,6 +46,8 @@ public record PerfumeRequest(
 		@Max(value = 5, message = "Bewertung von 1 bis 5.")
 		Integer rating,
 
-		PerfumeStatus status
+		PerfumeStatus status,
+
+		Boolean favorite
 ) {
 }

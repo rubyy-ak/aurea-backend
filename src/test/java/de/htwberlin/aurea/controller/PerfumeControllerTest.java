@@ -84,6 +84,30 @@ class PerfumeControllerTest {
 	}
 
 	@Test
+	void favoriteCanBeSetAndFiltered() throws Exception {
+		createPerfume(mvc, auth, "Alltag", "FRESH", "OWNED");
+		String body = mvc.perform(post("/api/perfumes").header("Authorization", auth)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(perfumeJson("Liebling", "FLORAL", "OWNED", true)))
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.favorite").value(true))
+				.andReturn().getResponse().getContentAsString();
+		long id = ((Number) com.jayway.jsonpath.JsonPath.read(body, "$.id")).longValue();
+
+		mvc.perform(get("/api/perfumes").param("favorite", "true").header("Authorization", auth))
+				.andExpect(jsonPath("$", hasSize(1)))
+				.andExpect(jsonPath("$[0].name").value("Liebling"));
+
+		// Beim Bearbeiten wieder abwählen.
+		mvc.perform(put("/api/perfumes/" + id).header("Authorization", auth)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(perfumeJson("Liebling", "FLORAL", "OWNED", false)))
+				.andExpect(jsonPath("$.favorite").value(false));
+		mvc.perform(get("/api/perfumes").param("favorite", "true").header("Authorization", auth))
+				.andExpect(jsonPath("$", hasSize(0)));
+	}
+
+	@Test
 	void updateAndDeletePerfume() throws Exception {
 		long id = createPerfume(mvc, auth, "Alt", "FRESH", "OWNED");
 

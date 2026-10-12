@@ -41,8 +41,9 @@ public class PerfumeController {
 			@RequestParam(required = false) PerfumeStatus status,
 			@RequestParam(required = false) ScentFamily family,
 			@RequestParam(required = false) String q,
+			@RequestParam(required = false) Boolean favorite,
 			@RequestParam(required = false) String sort) {
-		return perfumeService.list(user.id(), new PerfumeService.Filter(status, family, q, sort));
+		return perfumeService.list(user.id(), new PerfumeService.Filter(status, family, q, favorite, sort));
 	}
 
 	@GetMapping("/suggestion")

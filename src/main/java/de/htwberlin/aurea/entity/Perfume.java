@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -64,6 +65,10 @@ public class Perfume {
 	private PerfumeStatus status = PerfumeStatus.OWNED;
 
 	@Column(nullable = false)
+	@ColumnDefault("false")
+	private boolean favorite;
+
+	@Column(nullable = false)
 	private Instant createdAt = Instant.now();
 
 	protected Perfume() {
@@ -108,6 +113,9 @@ public class Perfume {
 
 	public PerfumeStatus getStatus() { return status; }
 	public void setStatus(PerfumeStatus status) { this.status = status; }
+
+	public boolean isFavorite() { return favorite; }
+	public void setFavorite(boolean favorite) { this.favorite = favorite; }
 
 	public Instant getCreatedAt() { return createdAt; }
 }
