@@ -1,0 +1,29 @@
+# Render Blueprint fürs Backend: legt die Postgres-Datenbank und die Spring-API an.
+# Zugangsdaten erzeugt Render selbst und reicht sie als Umgebungsvariablen weiter – nichts davon steht im Repo.
+databases:
+  - name: aurea-db
+    databaseName: aurea
+    plan: free
+
+services:
+  - type: web
+    name: aurea-backend
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    autoDeployTrigger: checksPass # erst deployen, wenn die GitHub-Actions-Tests grün sind
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DB_HOST
+        fromDatabase: { name: aurea-db, property: host }
+      - key: DB_PORT
+        fromDatabase: { name: aurea-db, property: port }
+      - key: DB_NAME
+        fromDatabase: { name: aurea-db, property: database }
+      - key: DB_USER
+        fromDatabase: { name: aurea-db, property: user }
+      - key: DB_PASSWORD
+        fromDatabase: { name: aurea-db, property: password }
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false # URL des Frontends, z. B. https://aurea-frontend.onrender.com

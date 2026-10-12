@@ -7,3 +7,4 @@ data/
 out/
 .vscode/
 HELP.md
+.DS_Store
