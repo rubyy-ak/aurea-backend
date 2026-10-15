@@ -3,6 +3,8 @@ package de.htwberlin.aurea.service;
 import de.htwberlin.aurea.dto.ExpenseSummaryResponse;
 import de.htwberlin.aurea.dto.PerfumeRequest;
 import de.htwberlin.aurea.dto.PerfumeResponse;
+import de.htwberlin.aurea.dto.PerfumeSuggestionResponse;
+import de.htwberlin.aurea.dto.WeatherRequest;
 import de.htwberlin.aurea.entity.Perfume;
 import de.htwberlin.aurea.entity.PerfumeStatus;
 import de.htwberlin.aurea.entity.ScentFamily;
@@ -164,5 +166,69 @@ public class PerfumeService {
 				total,
 				average
 		);
+	}
+	@Transactional(readOnly = true)
+	public PerfumeSuggestionResponse suggestion(Long userId, WeatherRequest weather) {
+		List<Perfume> ownedPerfumes = perfumes.findByOwnerIdAndStatus(userId, PerfumeStatus.OWNED);
+
+		Perfume match = ownedPerfumes.stream()
+				.filter(perfume -> matchesWeather(perfume, weather))
+				.findFirst()
+				.orElse(null);
+
+		if (match == null) {
+			return new PerfumeSuggestionResponse(
+					"NO_MATCH",
+					"Heute passt nichts perfekt aus deiner Sammlung.",
+					null
+			);
+		}
+
+		return new PerfumeSuggestionResponse(
+				"MATCH_FOUND",
+				buildWeatherMessage(match, weather),
+				PerfumeResponse.from(match)
+		);
+	}
+	private static boolean matchesWeather(Perfume perfume, WeatherRequest weather) {
+		if (weather == null || weather.temperatureCelsius() == null) {
+			return true;
+		}
+
+		BigDecimal temperature = weather.temperatureCelsius();
+
+		if (temperature.compareTo(BigDecimal.valueOf(10)) <= 0) {
+			return perfume.getFamily() == ScentFamily.ORIENTAL
+					|| perfume.getFamily() == ScentFamily.WOODY
+					|| perfume.getFamily() == ScentFamily.GOURMAND;
+		}
+
+		if (temperature.compareTo(BigDecimal.valueOf(20)) >= 0) {
+			return perfume.getFamily() == ScentFamily.FRESH
+					|| perfume.getFamily() == ScentFamily.CITRUS
+					|| perfume.getFamily() == ScentFamily.AQUATIC;
+		}
+
+		return perfume.getFamily() == ScentFamily.FLORAL
+				|| perfume.getFamily() == ScentFamily.FRUITY
+				|| perfume.getFamily() == ScentFamily.FRESH;
+	}
+
+	private static String buildWeatherMessage(Perfume perfume, WeatherRequest weather) {
+		if (weather == null || weather.temperatureCelsius() == null) {
+			return "Dieser Duft passt heute gut zu deinem Tag.";
+		}
+
+		BigDecimal temperature = weather.temperatureCelsius();
+
+		if (temperature.compareTo(BigDecimal.valueOf(10)) <= 0) {
+			return "Es ist kühl – dieser Duft passt heute besonders gut.";
+		}
+
+		if (temperature.compareTo(BigDecimal.valueOf(20)) >= 0) {
+			return "Es ist warm – dieser Duft wirkt heute angenehm leicht.";
+		}
+
+		return "Dieser Duft passt heute gut zum Wetter.";
 	}
 }
