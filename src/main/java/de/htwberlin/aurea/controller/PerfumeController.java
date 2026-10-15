@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
+import de.htwberlin.aurea.dto.ExpenseSummaryResponse;
 import java.util.List;
 
 @RestController
@@ -53,7 +53,10 @@ public class PerfumeController {
 			@RequestParam(required = false) Integer weatherCode) {
 		return suggestionService.suggest(user.id(), CurrentWeather.ofPlausible(temperature, weatherCode));
 	}
-
+	@GetMapping("/summary")
+	public ExpenseSummaryResponse summary(@AuthenticationPrincipal AuthUser user) {
+		return perfumeService.summary(user.id());
+	}
 	@GetMapping("/{id}")
 	public PerfumeResponse get(@AuthenticationPrincipal AuthUser user, @PathVariable Long id) {
 		return perfumeService.get(user.id(), id);
