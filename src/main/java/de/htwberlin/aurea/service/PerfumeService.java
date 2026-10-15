@@ -1,5 +1,6 @@
 package de.htwberlin.aurea.service;
 
+import de.htwberlin.aurea.dto.ExpenseSummaryResponse;
 import de.htwberlin.aurea.dto.PerfumeRequest;
 import de.htwberlin.aurea.dto.PerfumeResponse;
 import de.htwberlin.aurea.entity.Perfume;
@@ -12,10 +13,13 @@ import de.htwberlin.aurea.repository.PerfumeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Stream;
+import java.util.Objects;
 
 @Service
 public class PerfumeService {
@@ -129,5 +133,36 @@ public class PerfumeService {
 					Comparator.nullsLast(Comparator.reverseOrder()));
 			default -> (a, b) -> 0;
 		};
+	}
+	@Transactional(readOnly = true)
+	public ExpenseSummaryResponse summary(Long userId) {
+		List<Perfume> all = perfumes.findByOwnerIdOrderByCreatedAtDesc(userId);
+
+		List<Perfume> owned = all.stream()
+				.filter(p -> p.getStatus() == PerfumeStatus.OWNED)
+				.toList();
+
+		int wishlistCount = (int) all.stream()
+				.filter(p -> p.getStatus() == PerfumeStatus.WISHLIST)
+				.count();
+
+		List<BigDecimal> prices = owned.stream()
+				.map(Perfume::getPriceEur)
+				.filter(java.util.Objects::nonNull)
+				.toList();
+
+		BigDecimal total = prices.stream()
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		BigDecimal average = prices.isEmpty()
+				? BigDecimal.ZERO
+				: total.divide(BigDecimal.valueOf(prices.size()), 2, RoundingMode.HALF_UP);
+
+		return new ExpenseSummaryResponse(
+				owned.size(),
+				wishlistCount,
+				total,
+				average
+		);
 	}
 }
