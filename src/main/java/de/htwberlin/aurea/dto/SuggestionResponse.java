@@ -4,6 +4,7 @@ public record SuggestionResponse(
 		PerfumeResponse perfume,
 		Double temperatureC,
 		String weather,
-		String reason
+		String reason,
+		String status
 ) {
 }

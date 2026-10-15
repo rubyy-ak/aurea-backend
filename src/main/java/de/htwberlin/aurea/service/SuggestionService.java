@@ -55,28 +55,50 @@ public class SuggestionService {
 
 		List<Perfume> owned = perfumes.findByOwnerIdAndStatus(userId, PerfumeStatus.OWNED);
 		if (owned.isEmpty()) {
-			return new SuggestionResponse(null, temperature, description,
-					"Füge zuerst ein Parfüm zu deiner Sammlung hinzu.");
+			return new SuggestionResponse(
+					null,
+					temperature,
+					description,
+					"Füge zuerst ein Parfüm zu deiner Sammlung hinzu.",
+					"EMPTY_COLLECTION"
+			);
 		}
 
-		// Nur Düfte, die zum Wetter passen – gibt es keine, kommen alle in Frage.
-		List<Perfume> matching = owned.stream().filter(p -> p.getFamily().isLight() == warm).toList();
-		boolean fits = !matching.isEmpty();
-		List<Perfume> pool = fits ? matching : owned;
-		// Favoriten haben Vorrang, sofern welche dabei sind.
-		List<Perfume> favorites = pool.stream().filter(Perfume::isFavorite).toList();
-		List<Perfume> candidates = (favorites.isEmpty() ? pool : favorites).stream()
+		List<Perfume> matching = owned.stream()
+				.filter(p -> p.getFamily().isLight() == warm)
+				.toList();
+
+		if (matching.isEmpty()) {
+			return new SuggestionResponse(
+					null,
+					temperature,
+					description,
+					"Heute passt nichts perfekt aus deiner Sammlung.",
+					"NO_MATCH"
+			);
+		}
+
+		List<Perfume> favorites = matching.stream()
+				.filter(Perfume::isFavorite)
+				.toList();
+
+		List<Perfume> candidates = (favorites.isEmpty() ? matching : favorites).stream()
 				.sorted(Comparator.comparing(Perfume::getCreatedAt).thenComparing(Perfume::getName))
 				.toList();
 
-		// Jeden Tag ein anderer Kandidat, am selben Tag aber immer derselbe.
 		Perfume pick = candidates.get(today.getDayOfYear() % candidates.size());
 
-		String mood = warm ? "warm – Zeit für etwas Leichtes und Frisches" : "kühl – perfekt für einen warmen, tiefen Duft";
-		String reason = fits
-				? "Es ist " + mood + "."
-				: "Es ist " + mood + ". In deiner Sammlung passt gerade nichts perfekt – wie wäre es hiermit?";
-		return new SuggestionResponse(PerfumeResponse.from(pick), temperature, description, reason);
+		String mood = warm
+				? "warm – Zeit für etwas Leichtes und Frisches"
+				: "kühl – perfekt für einen warmen, tiefen Duft";
+
+		return new SuggestionResponse(
+				PerfumeResponse.from(pick),
+				temperature,
+				description,
+				"Es ist " + mood + ".",
+				"MATCH"
+		);
 	}
 
 	private static boolean isWarmSeason(LocalDate day) {
